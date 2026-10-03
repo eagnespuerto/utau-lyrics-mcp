@@ -42,6 +42,8 @@ def write_text(path: Path, text: str, encoding: str = "shift_jis") -> str:
         data = text.encode(encoding)
     except UnicodeEncodeError:
         encoding = "utf-8"
+        # OpenUtau assumes Shift-JIS unless the file names its charset.
+        text = text.replace("[#SETTING]\r\n", "[#SETTING]\r\nCharset=UTF-8\r\n", 1)
         data = text.encode(encoding)
     Path(path).write_bytes(data)
     return encoding

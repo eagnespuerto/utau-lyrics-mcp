@@ -33,7 +33,9 @@ def create_song(lyrics: str, chords: str, key: str = "C", tempo: float = 100.0,
     chords: bars separated by '|', e.g. 'C | Am | F G | C'. Chords in one bar
         share it equally, '%' repeats the previous bar. The progression loops.
     key: e.g. 'C', 'Bb', 'F#m'. Off-beat notes use this scale.
-    lyric_mode: 'auto' (kana by mora, other words by English syllable),
+    lyric_mode: 'auto' (kana by mora; other words keep the whole word on
+        their first note and '+' on the rest, which is what OpenUtau's English
+        phonemizers expect), 'syllables' (word fragments like 'win' 'dow'),
         'romaji' (convert romaji to hiragana for Japanese voicebanks), 'raw'.
     voice_range: lowest-highest note for the melody, e.g. 'A3-C5'.
     guide_volume: 0-1 level of a flute doubling the melody in the backing,
@@ -74,7 +76,8 @@ def render_backing(chords: str, bars: int | None = None, tempo: float = 100.0,
 @mcp.tool()
 def preview_syllables(lyrics: str, lyric_mode: str = "auto") -> list[str]:
     """Show how each lyric line will be split into notes, before making a song.
-    Syllables are separated by spaces; '(xN)' marks a held syllable."""
+    Notes are separated by spaces; '+' continues the word before it and
+    '(xN)' marks a held note."""
     return [" ".join(s.text + (f"(x{s.weight})" if s.weight > 1 else "") for s in line)
             if line else "(rest)" for line in syllabify(lyrics, lyric_mode)]
 

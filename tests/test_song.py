@@ -42,7 +42,9 @@ def test_english_syllables(word, expected):
 
 
 def test_lyric_modes():
-    assert [s.text for s in syllabify_line("beau-ti-ful day")] == ["beau", "ti", "ful", "day"]
+    assert [s.text for s in syllabify_line("beau-ti-ful window day")] == ["beautiful", "+", "+", "window", "+", "day"]
+    assert [s.text for s in syllabify_line("beau-ti-ful window", "syllables")] == ["beau", "ti", "ful", "win", "dow"]
+    assert [s.text for s in syllabify_line("can’t “stop”")] == ["can't", "stop"]
     held = syllabify_line("low~~")
     assert (held[0].text, held[0].weight) == ("low", 3)
     assert [s.text for s in syllabify_line("きょうは ラーメン")] == ["きょ", "う", "は", "ラ", "メ", "ン"]
@@ -103,6 +105,12 @@ def test_kana_ust_is_shift_jis(tmp_path):
     assert result["ust_encoding"] == "shift_jis"
     assert "Lyric=さ" in open(result["ust"], encoding="shift_jis").read()
     assert "backing" not in result
+
+
+def test_utf8_ust_names_its_charset(tmp_path):
+    result = song.create_song("라 라", "C", output_dir=str(tmp_path), ust_only=True)
+    assert result["ust_encoding"] == "utf-8"
+    assert "[#SETTING]\r\nCharset=UTF-8\r\n" in open(result["ust"], encoding="utf-8", newline="").read()
 
 
 def test_install_and_openutau_temp_file(tmp_path):

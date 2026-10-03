@@ -63,7 +63,9 @@ Files go to `utau-lyrics-mcp-output` in your user folder unless you pass `output
 
 Each line of text is one sung line and gets two bars by default. A line with too many syllables takes more bars. A blank line is one bar of rest. The song starts with a one-bar intro and ends with one bar on the first chord of the progression.
 
-The English syllable splitter is a rough guess based on vowel groups. It gets "window" and "little" right and treats "quiet" as one syllable. Fix a word by hyphenating it yourself: `qui-et`, `beau-ti-ful`. Add `~` to hold a syllable longer: `slow~`. Run `preview_syllables` first to see the split.
+English words are counted in syllables, one note each. The whole word goes on the first note and each later note gets `+`, so "window" becomes `window` `+`. OpenUtau's English phonemizers read that as "spread this word over these notes". For word fragments instead (`win` `dow`), use `lyric_mode="syllables"`.
+
+The syllable count is a rough guess based on vowel groups. It gets "window" and "little" right and counts "quiet" as one. Fix a word by hyphenating it yourself: `qui-et`, `beau-ti-ful`. Add `~` to hold a syllable longer: `slow~`. Run `preview_syllables` first to see the split.
 
 Kana is split by mora. `ー` and `っ` lengthen the note before them.
 
@@ -94,6 +96,16 @@ There are two renderers.
 **FluidSynth with a SoundFont.** For sampled instruments, install [FluidSynth](https://www.fluidsynth.org/) and get a free SoundFont such as FluidR3_GM (MIT), MuseScore_General (MIT) or GeneralUser GS (its own permissive licence). Then pass `soundfont` or set `UTAU_LYRICS_SOUNDFONT` to the `.sf2` path. The instrument names map to General MIDI programs. If FluidSynth or the file is missing, the built-in synth takes over.
 
 The `.mid` is always written, so you can also load it into any DAW and pick your own instruments.
+
+## Getting it to sing in OpenUtau
+
+Open the `.ust`, pick a singer for the track, then pick a phonemizer that matches both the voicebank and the lyric language. A mismatch gives silence or a hum, and the log fills with "phonemizer error" lines.
+
+- English classic voicebank: use the phonemizer its readme names, usually `EN X-SAMPA`, `EN ARPA+` or `EN VCCV`.
+- Japanese voicebank: write the lyrics in kana or use `lyric_mode="romaji"`, with a `JA` phonemizer. A Japanese bank cannot sing English words.
+- The `DiffSinger` phonemizers only work with DiffSinger voicebanks.
+
+Then import the backing `.wav` on a second track.
 
 ## OpenUtau and UTAU plugin
 

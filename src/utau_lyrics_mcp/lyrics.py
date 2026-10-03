@@ -5,9 +5,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-MODES = ("auto", "romaji", "raw")
+MODES = ("auto", "syllables", "romaji", "raw")
+CONTINUE = "+"
 
-_PUNCT = str.maketrans("", "", ".,!?;:\"()[]{}…、。！？「」『』・")
+_PUNCT = str.maketrans({**dict.fromkeys(".,!?;:\"()[]{}…、。！？「」『』・“”"), "’": "'", "‘": "'"})
 _SMALL_KANA = set("ゃゅょぁぃぅぇぉゎャュョァィゥェォヮ")
 _HOLD = set("ー〜~っッ")
 _DIGRAPH_STAY = ("ng", "ck")
@@ -104,20 +105,25 @@ def romaji_to_kana(word: str) -> list[Syllable] | None:
 def _split_token(token: str, mode: str) -> list[Syllable]:
     if any(_is_kana(ch) for ch in token):
         return kana_morae(token)
+    parts = [p for p in token.split("-") if p.rstrip("~")]
     out: list[Syllable] = []
-    for part in token.split("-"):
+    for part in parts:
         holds = len(part) - len(part.rstrip("~"))
         part = part.rstrip("~")
-        if not part:
-            continue
         if mode == "romaji":
             pieces = romaji_to_kana(part) or [Syllable(part)]
-        elif mode == "raw" or "-" in token:
+        elif mode == "raw" or len(parts) > 1:
             pieces = [Syllable(part)]
         else:
             pieces = [Syllable(s) for s in english_syllables(part)]
         pieces[-1].weight += holds
         out.extend(pieces)
+    if mode == "auto" and out:
+        # OpenUtau's dictionary phonemizers need the whole word on the first
+        # note and "+" on each note that continues it.
+        out[0].text = "".join(p.rstrip("~") for p in parts)
+        for syllable in out[1:]:
+            syllable.text = CONTINUE
     return out
 
 
