@@ -1,0 +1,2 @@
+name=Fit notes to chords + backing track
+execute=run.bat
