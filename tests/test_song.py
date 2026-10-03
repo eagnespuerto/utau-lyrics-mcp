@@ -105,6 +105,26 @@ def test_kana_ust_is_shift_jis(tmp_path):
     assert "backing" not in result
 
 
+def test_install_and_openutau_temp_file(tmp_path):
+    dest = plugin.install(tmp_path)
+    assert {p.name for p in dest.iterdir()} == {"plugin.txt", "run.bat", "settings.ini"}
+    (dest / "settings.ini").write_text("[song]\nchords = G\nbacking = no\n", encoding="utf-8")
+    assert plugin.install(tmp_path) == dest
+    assert "chords = G" in (dest / "settings.ini").read_text(encoding="utf-8")  # kept
+
+    # What OpenUtau writes: UTF-8 with BOM, no [#VERSION], plain Tempo.
+    body = ("[#SETTING]\r\nTempo=120\r\nTracks=1\r\nMode2=True\r\n"
+            "[#0000]\r\nLength=480\r\nLyric=라\r\nNoteNum=60\r\n"
+            "[#NEXT]\r\nLength=480\r\nLyric=R\r\nNoteNum=60\r\n")
+    path = tmp_path / "temp.ust"
+    path.write_bytes(body.encode("utf-8-sig"))
+    plugin.run(path, dest / "settings.ini")
+    sections = dict(ust.parse_ust(path.read_text(encoding="utf-8")))
+    assert sections["#0000"]["Lyric"] == "라"
+    assert int(sections["#0000"]["NoteNum"]) % 12 in parse_chord("G").pitch_classes
+    assert sections["#NEXT"]["NoteNum"] == "60"
+
+
 def test_plugin_repitches_selection(tmp_path):
     notes = [Note(0, 480, "ら", 60), Note(480, 480, "R", None), Note(960, 960, "ら", 60)]
     text = ust.build_ust(notes, 90).replace("[#0000]", "[#PREV]\r\nLength=480\r\nLyric=R\r\n[#0000]")

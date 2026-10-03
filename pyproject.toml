@@ -20,5 +20,8 @@ utau-lyrics-mcp = "utau_lyrics_mcp.__main__:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+utau_lyrics_mcp = ["plugin_files/*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

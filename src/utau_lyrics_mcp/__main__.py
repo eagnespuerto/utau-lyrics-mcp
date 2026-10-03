@@ -1,4 +1,4 @@
-"""`python -m utau_lyrics_mcp` runs the MCP server; `... song` makes a song from the shell."""
+"""`python -m utau_lyrics_mcp` runs the MCP server; `song` and `install-plugin` are shell commands."""
 
 from __future__ import annotations
 
@@ -28,6 +28,8 @@ def main() -> None:
     p.add_argument("--guide-volume", type=float, default=0.35)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--soundfont")
+    i = sub.add_parser("install-plugin", help="copy the plugin into OpenUtau or UTAU")
+    i.add_argument("--dir", help="Plugins folder (default: OpenUtau's, if found)")
     args = parser.parse_args()
 
     if args.command == "song":
@@ -37,6 +39,9 @@ def main() -> None:
             args.voice_range, instrument=args.instrument, style=args.style, drums=args.drums,
             guide_volume=args.guide_volume, seed=args.seed, soundfont=args.soundfont)
         print(json.dumps(result, indent=2, ensure_ascii=False))
+    elif args.command == "install-plugin":
+        from .plugin import install
+        print(f"Installed to {install(args.dir)}")
     else:
         from .server import main as serve
         serve()

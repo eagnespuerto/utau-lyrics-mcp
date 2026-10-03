@@ -1,6 +1,6 @@
-"""UTAU plugin entry point.
+"""UTAU / OpenUtau plugin entry point.
 
-UTAU calls a plugin with the path of a temporary .ust holding the selected
+The editor calls a plugin with the path of a temporary .ust holding the selected
 notes. This re-pitches those notes to fit the chord progression in
 settings.ini (lengths and lyrics are kept) and renders a matching backing
 track. Chords start at the first selected note.
@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import configparser
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -21,6 +22,40 @@ DEFAULTS = {"chords": "C | Am | F | G", "key": "C", "voice_range": "A3-C5", "see
             "beats_per_bar": "4", "tempo": "120", "backing": "yes", "instrument": "piano",
             "style": "arpeggio", "bass": "yes", "drums": "no", "guide_volume": "0.35",
             "output_dir": "", "soundfont": ""}
+
+
+PLUGIN_FILES = Path(__file__).parent / "plugin_files"
+PLUGIN_FOLDER = "utau-lyrics-mcp"
+
+
+def find_plugins_dir() -> Path | None:
+    """OpenUtau's Plugins folder, if its data folder is in the usual place."""
+    home = Path.home()
+    for docs in (home / "Documents", home / "OneDrive" / "Documents"):
+        if (docs / "OpenUtau").is_dir():
+            return docs / "OpenUtau" / "Plugins"
+    return None
+
+
+def install(plugins_dir: str | Path | None = None) -> Path:
+    """Copy the plugin into a Plugins folder, with a run.bat bound to this Python.
+
+    An existing settings.ini is kept.
+    """
+    base = Path(plugins_dir) if plugins_dir else find_plugins_dir()
+    if base is None:
+        raise FileNotFoundError("OpenUtau data folder not found. Pass --dir with the "
+                                "Plugins folder of OpenUtau or UTAU.")
+    dest = base / PLUGIN_FOLDER
+    dest.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(PLUGIN_FILES / "plugin.txt", dest / "plugin.txt")
+    if not (dest / "settings.ini").exists():
+        shutil.copyfile(PLUGIN_FILES / "settings.ini", dest / "settings.ini")
+    (dest / "run.bat").write_text(
+        "@echo off\r\nchcp 65001 >nul\r\n"
+        f'"{sys.executable}" -m utau_lyrics_mcp.plugin "%~1" "%~dp0settings.ini"\r\n'
+        "if errorlevel 1 pause\r\n", encoding="utf-8", newline="")
+    return dest
 
 
 def load_settings(path: Path | None) -> configparser.SectionProxy:

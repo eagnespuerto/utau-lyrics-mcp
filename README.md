@@ -5,7 +5,7 @@ Test version. Give it lyrics and a chord progression, and it writes:
 - a `.ust` file for UTAU or OpenUtau, one note per syllable, with pitches chosen to fit the chords
 - a backing track of the same length as `.mid` and `.wav`, so the two line up at 0:00
 
-It runs as an MCP server (for Claude or any other MCP client), as a UTAU plugin, or from the command line.
+It runs as an MCP server (for Claude or any other MCP client), as an OpenUtau or UTAU plugin, or from the command line.
 
 It does not render the voice. You still open the `.ust` in UTAU or OpenUtau with a voicebank and import the backing `.wav` next to it.
 
@@ -95,15 +95,23 @@ There are two renderers.
 
 The `.mid` is always written, so you can also load it into any DAW and pick your own instruments.
 
-## UTAU plugin
+## OpenUtau and UTAU plugin
 
-Copy the `utau_plugin` folder into UTAU's `plugins` folder. `run.bat` calls `python`, so the package must be installed for the Python on your PATH.
+Windows only for now.
 
-Select notes in UTAU and run "Fit notes to chords + backing track". The plugin keeps your lyrics and note lengths, changes the pitches to fit the chords in `settings.ini`, and writes `plugin_backing.wav` and `.mid` for the selection. Chords start at the first selected note.
+```bash
+python -m utau_lyrics_mcp install-plugin
+```
+
+This copies the plugin into OpenUtau's `Plugins` folder (`Documents/OpenUtau/Plugins/utau-lyrics-mcp`) and writes a `run.bat` that calls the Python you ran the command with. For classic UTAU, or an OpenUtau data folder somewhere else, pass the folder: `--dir "C:\path	o\plugins"`. Restart the editor afterwards.
+
+In OpenUtau, select notes in the piano roll and pick "Fit notes to chords + backing track" from the legacy plugin menu. The plugin keeps your lyrics and note lengths, changes the pitches to fit the chords in `settings.ini`, and writes `plugin_backing.wav` and `.mid` for the selection to `utau-lyrics-mcp-output` in your user folder. Chords start at the first selected note.
+
+Edit `settings.ini` in the installed folder to change chords, key, range, seed and instrument. Reinstalling keeps your `settings.ini`.
 
 ## Not tested yet
 
-- The plugin has only been run against UST files written by the tests, not inside UTAU itself.
+- The plugin has been run through its `run.bat` on a temp file in OpenUtau's format, but not from inside OpenUtau or UTAU.
 - The FluidSynth path has not been run on a real install.
 - Rhythm is an even eighth-note grid. There is no syncopation and no melisma.
 - 4/4 is the only time signature that has been tried, though `beats_per_bar` exists.

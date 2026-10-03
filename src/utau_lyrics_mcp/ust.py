@@ -51,7 +51,7 @@ def read_text(path: Path) -> tuple[str, str]:
     """Returns (text, encoding). Classic UTAU writes Shift-JIS, OpenUtau UTF-8."""
     data = Path(path).read_bytes()
     try:
-        return data.decode("utf-8"), "utf-8"
+        return data.decode("utf-8-sig"), "utf-8"  # OpenUtau writes a BOM
     except UnicodeDecodeError:
         return data.decode("cp932"), "cp932"
 
